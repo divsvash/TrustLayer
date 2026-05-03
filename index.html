@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TrustLayer AI — Reliable AI, not just smart AI.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="tl-root" id="root">
+
+  <!-- TOP BAR -->
+  <div class="tl-topbar">
+    <div class="tl-logo-dot"></div>
+    <div class="tl-logo">TrustLayer AI</div>
+    <div class="tl-badge">v1.0 · RAG + Verify</div>
+    <div class="tl-mode-toggle">
+      <button class="tl-mode-btn" id="fastBtn" onclick="setMode('fast')">⚡ Fast</button>
+      <button class="tl-mode-btn active" id="trustBtn" onclick="setMode('trust')">🛡️ Trust</button>
+    </div>
+  </div>
+
+  <!-- LEFT PANEL -->
+  <div class="tl-left">
+    <div class="tl-section-label">Documents</div>
+
+    <div class="tl-upload-zone" onclick="simulateUpload()">
+      <div class="tl-upload-icon">📄</div>
+      <div class="tl-upload-text"><span>Upload</span> PDF or TXT<br>to index context</div>
+    </div>
+
+    <div class="tl-sources-list" id="docList">
+      <div class="tl-doc-item active" id="doc1">
+        <div class="tl-doc-icon">📑</div>
+        <div style="flex:1;overflow:hidden;">
+          <div class="tl-doc-name">product_specs.pdf</div>
+          <div class="tl-doc-size">42 KB · 18 chunks</div>
+        </div>
+        <div class="tl-doc-active-dot"></div>
+      </div>
+      <div class="tl-doc-item" id="doc2">
+        <div class="tl-doc-icon">📄</div>
+        <div style="flex:1;overflow:hidden;">
+          <div class="tl-doc-name">compliance_2024.txt</div>
+          <div class="tl-doc-size">18 KB · 9 chunks</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tl-divider"></div>
+    <div class="tl-section-label">Try these queries</div>
+    <div class="tl-sample-btns">
+      <button class="tl-sample-btn" onclick="sendSample('What are the key product specifications?')">📋 Ask about product specs</button>
+      <button class="tl-sample-btn" onclick="sendSample('What is the company revenue in 2025?')">💰 Ask something NOT in docs</button>
+      <button class="tl-sample-btn" onclick="sendSample('Summarize the compliance guidelines')">📜 Ask about compliance</button>
+    </div>
+
+    <div class="tl-divider"></div>
+    <div class="tl-section-label">Pipeline</div>
+    <div class="tl-pipeline-row" id="pipelineSteps">
+      <div class="tl-pipeline-step" id="step1"><div class="tl-step-dot"></div>Retriever (FAISS)</div>
+      <div class="tl-pipeline-step" id="step2"><div class="tl-step-dot"></div>Top-K Context</div>
+      <div class="tl-pipeline-step" id="step3"><div class="tl-step-dot"></div>Answer Generator</div>
+      <div class="tl-pipeline-step" id="step4"><div class="tl-step-dot"></div>Verifier LLM</div>
+      <div class="tl-pipeline-step" id="step5"><div class="tl-step-dot"></div>Trust Score</div>
+    </div>
+  </div>
+
+  <!-- CENTER CHAT -->
+  <div class="tl-center">
+    <div class="tl-chat" id="chatArea">
+      <div class="tl-chat-empty">
+        <div style="font-size:40px;">🛡️</div>
+        <div style="font-size:14px;font-weight:600;color:#475569;">TrustLayer AI</div>
+        <div style="font-size:12px;color:#334155;max-width:220px;line-height:1.7;text-align:center;">
+          Ask anything. I'll only answer from indexed documents — and tell you how confident I am.
+        </div>
+      </div>
+    </div>
+    <div class="tl-input-bar">
+      <input class="tl-input" id="queryInput"
+        placeholder="Ask something about your documents..."
+        onkeydown="handleKey(event)" />
+      <button class="tl-send-btn" id="sendBtn" onclick="submitQuery()">
+        <svg class="tl-send-icon" viewBox="0 0 16 16" fill="none" stroke="#60A5FA" stroke-width="2">
+          <path d="M2 8l12-6-6 12-2-4-4-2z" stroke-linejoin="round" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="tl-right">
+    <div class="tl-section-label">Trust Analytics</div>
+
+    <div class="tl-trust-meter-wrap">
+      <div class="tl-trust-circle">
+        <svg width="110" height="110" viewBox="0 0 110 110" style="transform:rotate(-90deg)">
+          <circle cx="55" cy="55" r="44" fill="none" stroke="#1E2A40" stroke-width="8"/>
+          <circle cx="55" cy="55" r="44" fill="none" stroke="#1E3A5F" stroke-width="8"
+            stroke-dasharray="276.46" stroke-dashoffset="276.46"
+            stroke-linecap="round" id="trustArc"
+            style="transition: stroke-dashoffset 1s ease, stroke 0.4s ease;"/>
+        </svg>
+        <div class="tl-trust-value">
+          <div class="tl-trust-pct" id="trustPct" style="color:#475569">—</div>
+          <div class="tl-trust-label">trust</div>
+        </div>
+      </div>
+      <div class="tl-trust-status" id="trustStatus" style="color:#475569;">AWAITING QUERY</div>
+    </div>
+
+    <div class="tl-divider"></div>
+    <div class="tl-section-label">Verification</div>
+    <div class="tl-reason-box" id="verifyReason">
+      No verification run yet. Submit a query to analyze.
+    </div>
+
+    <div class="tl-divider"></div>
+    <div class="tl-section-label">Retrieved Chunks</div>
+    <div id="chunkArea">
+      <div class="tl-empty-state" style="height:80px;">
+        <div class="tl-empty-text">Chunks will appear here after retrieval</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM BAR -->
+  <div class="tl-bottombar">
+    <div class="tl-stat-row">
+      <div class="tl-stat">
+        <div class="tl-stat-val" id="statQueries">0</div>
+        <div class="tl-stat-lbl">Queries</div>
+      </div>
+      <div class="tl-stat">
+        <div class="tl-stat-val" id="statTrust">—</div>
+        <div class="tl-stat-lbl">Avg Trust</div>
+      </div>
+      <div class="tl-stat">
+        <div class="tl-stat-val" id="statHalluc">0</div>
+        <div class="tl-stat-lbl">Flagged</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
